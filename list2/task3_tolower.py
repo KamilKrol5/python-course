@@ -16,6 +16,6 @@ def to_lower(dir_path: str):
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Invalid number of arguments. Valid argument is: <directory name>")
-        exit(0)
+        exit(1)
 
     to_lower(sys.argv[1])
