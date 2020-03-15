@@ -19,7 +19,8 @@ def decode_base64(data2: str):
     return output_str
 
 
-def encode_base64(data: bytes):
+def encode_base64(data: str):
+    data = data.encode()
     for_padding = 0
     output = []
     for i in range(0, len(data), 3):
@@ -46,12 +47,23 @@ if __name__ == '__main__':
         print("Invalid number of arguments. Valid arguments are: --encode or --decode <src/dest file> <src/dest file>")
         exit(1)
 
-    print(encode_base64("Python".encode()))
-    print(encode_base64("pleasure.".encode()))
-    print(encode_base64("leasure.".encode()))
-    print(encode_base64("easure.".encode()))
-    print('---')
-    print(decode_base64(encode_base64("Python".encode())))
-    print(decode_base64(encode_base64("pleasure.".encode())))
-    print(decode_base64(encode_base64("leasure.".encode())))
-    print(decode_base64(encode_base64("easure.".encode())))
+    actions = {'--encode': encode_base64, '--decode': decode_base64}
+    if sys.argv[1] not in actions:
+        print("Unknown mode. Valid modes are: --encode or --decode.")
+        exit(1)
+
+    with open(sys.argv[2], 'r') as file_src, open(sys.argv[3], 'w') as file_dst:
+        for line in file_src:
+            line = line.rstrip('\n')
+            file_dst.write(actions[sys.argv[1]](line)+'\n')
+
+    # tests
+    # print(encode_base64("Python".encode()))
+    # print(encode_base64("pleasure.".encode()))
+    # print(encode_base64("leasure.".encode()))
+    # print(encode_base64("easure.".encode()))
+    # print('---')
+    # print(decode_base64(encode_base64("Python".encode())))
+    # print(decode_base64(encode_base64("pleasure.".encode())))
+    # print(decode_base64(encode_base64("leasure.".encode())))
+    # print(decode_base64(encode_base64("easure.".encode())))
