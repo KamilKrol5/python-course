@@ -1,24 +1,44 @@
 import sys
 
+table = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='
+char_for_index = dict((c, i) for (i, c) in enumerate(table))
 
-def decode_base64(label):
-    pass
+
+def decode_base64(data2: str):
+    data = [char_for_index[letter] & 0b0011_1111 for letter in data2]
+    output = []
+    for i in range(0, len(data), 4):
+        slice_ = data[i:i + 4]
+        output.extend([
+            (slice_[0] << 2) + (slice_[1] >> 4),
+            ((slice_[1] & 0b00_11_11) << 4) + (slice_[2] >> 2),
+            ((slice_[2] & 0b00_00_11) << 6) + slice_[3],
+        ])
+
+    output_str = bytes(output).decode('utf-8')
+    return output_str
 
 
 def encode_base64(data: bytes):
-    # data: bytes = data + (6 - (len(data) % 6)) * b'='
-    table = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    for_padding = 0
     output = []
     for i in range(0, len(data), 3):
         slice_ = data[i:i + 3]
+        for_padding = (3 - len(slice_))
+        if len(slice_) < 4:
+            slice_ = slice_ + bytearray(for_padding)
+
         output.extend([
             slice_[0] >> 2,
             ((slice_[0] & 0b0000_0011) << 4) + (slice_[1] >> 4),
             ((slice_[1] & 0b0000_1111) << 2) + (slice_[2] >> 6),
             slice_[2] & 0b0011_1111,
         ])
-    output = ''.join(table[s] for s in output)
-    return output
+    for i in range(for_padding):
+        output[-i - 1] = -1
+
+    output_str = ''.join(table[s] for s in output)
+    return output_str
 
 
 if __name__ == '__main__':
@@ -26,4 +46,12 @@ if __name__ == '__main__':
         print("Invalid number of arguments. Valid arguments are: --encode or --decode <src/dest file> <src/dest file>")
         exit(1)
 
-    print(encode_base64("Python3".encode()))
+    print(encode_base64("Python".encode()))
+    print(encode_base64("pleasure.".encode()))
+    print(encode_base64("leasure.".encode()))
+    print(encode_base64("easure.".encode()))
+    print('---')
+    print(decode_base64(encode_base64("Python".encode())))
+    print(decode_base64(encode_base64("pleasure.".encode())))
+    print(decode_base64(encode_base64("leasure.".encode())))
+    print(decode_base64(encode_base64("easure.".encode())))
