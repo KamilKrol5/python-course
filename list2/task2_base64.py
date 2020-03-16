@@ -5,6 +5,7 @@ char_for_index = dict((c, i) for (i, c) in enumerate(table))
 
 
 def decode_base64(data2: str):
+    padding = data2.count('=')
     data = [char_for_index[letter] & 0b0011_1111 for letter in data2]
     output = []
     for i in range(0, len(data), 4):
@@ -14,7 +15,8 @@ def decode_base64(data2: str):
             ((slice_[1] & 0b00_11_11) << 4) + (slice_[2] >> 2),
             ((slice_[2] & 0b00_00_11) << 6) + slice_[3],
         ])
-
+    for i in range(padding):
+        output.pop()
     output_str = bytes(output).decode('utf-8')
     return output_str
 
@@ -54,16 +56,15 @@ if __name__ == '__main__':
 
     with open(sys.argv[2], 'r') as file_src, open(sys.argv[3], 'w') as file_dst:
         for line in file_src:
-            line = line.rstrip('\n')
-            file_dst.write(actions[sys.argv[1]](line)+'\n')
+            file_dst.write(actions[sys.argv[1]](line))
 
     # tests
-    # print(encode_base64("Python".encode()))
-    # print(encode_base64("pleasure.".encode()))
-    # print(encode_base64("leasure.".encode()))
-    # print(encode_base64("easure.".encode()))
+    # print(encode_base64("Python"))
+    # print(encode_base64("pleasure."))
+    # print(encode_base64("leasure."))
+    # print(encode_base64("easure."))
     # print('---')
-    # print(decode_base64(encode_base64("Python".encode())))
-    # print(decode_base64(encode_base64("pleasure.".encode())))
-    # print(decode_base64(encode_base64("leasure.".encode())))
-    # print(decode_base64(encode_base64("easure.".encode())))
+    # print(decode_base64(encode_base64("Python")))
+    # print(decode_base64(encode_base64("pleasure.")))
+    # print(decode_base64(encode_base64("leasure.")))
+    # print(decode_base64(encode_base64("easure.")))
