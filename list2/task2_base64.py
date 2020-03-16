@@ -54,9 +54,9 @@ if __name__ == '__main__':
         print("Unknown mode. Valid modes are: --encode or --decode.")
         exit(1)
 
-    with open(sys.argv[2], 'r') as file_src, open(sys.argv[3], 'w') as file_dst:
-        for line in file_src:
-            file_dst.write(actions[sys.argv[1]](line))
+    with open(sys.argv[2], 'r', newline='\n') as file_src, open(sys.argv[3], 'w', newline='\n') as file_dst:
+        for fb in iter(lambda: file_src.read(240000), ''):
+            file_dst.write(actions[sys.argv[1]](fb))
 
     # tests
     # print(encode_base64("Python"))
