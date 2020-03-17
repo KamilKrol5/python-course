@@ -17,12 +17,10 @@ def decode_base64(data2: str):
         ])
     for i in range(padding):
         output.pop()
-    output_str = bytes(output).decode('utf-8')
-    return output_str
+    return bytearray(output)
 
 
-def encode_base64(data: str):
-    data = data.encode()
+def encode_base64(data: bytes):
     for_padding = 0
     output = []
     for i in range(0, len(data), 3):
@@ -49,22 +47,23 @@ if __name__ == '__main__':
         print("Invalid number of arguments. Valid arguments are: --encode or --decode <src/dest file> <src/dest file>")
         exit(1)
 
-    actions = {'--encode': encode_base64, '--decode': decode_base64}
-    if sys.argv[1] not in actions:
-        print("Unknown mode. Valid modes are: --encode or --decode.")
-        exit(1)
-
-    with open(sys.argv[2], 'r', newline='\n') as file_src, open(sys.argv[3], 'w', newline='\n') as file_dst:
-        for fb in iter(lambda: file_src.read(240000), ''):
-            file_dst.write(actions[sys.argv[1]](fb))
+    with open(sys.argv[2], 'rb') as file_src, open(sys.argv[3], 'wb') as file_dst:
+        for fb in iter(lambda: file_src.read(240000), b''):
+            if sys.argv[1] == '--encode':
+                file_dst.write(encode_base64(fb).encode())
+            elif sys.argv[1] == '--decode':
+                file_dst.write(decode_base64(fb.decode()))
+            else:
+                print("Unknown mode. Valid modes are: --encode or --decode.")
+                exit(1)
 
     # tests
-    # print(encode_base64("Python"))
-    # print(encode_base64("pleasure."))
-    # print(encode_base64("leasure."))
-    # print(encode_base64("easure."))
+    # print(encode_base64("Python".encode()))
+    # print(encode_base64("pleasure.".encode()))
+    # print(encode_base64("leasure.".encode()))
+    # print(encode_base64("easure.".encode()))
     # print('---')
-    # print(decode_base64(encode_base64("Python")))
-    # print(decode_base64(encode_base64("pleasure.")))
-    # print(decode_base64(encode_base64("leasure.")))
-    # print(decode_base64(encode_base64("easure.")))
+    # print(decode_base64(encode_base64("Python".encode())))
+    # print(decode_base64(encode_base64("pleasure.".encode())))
+    # print(decode_base64(encode_base64("leasure.".encode())))
+    # print(decode_base64(encode_base64("easure.".encode())))
