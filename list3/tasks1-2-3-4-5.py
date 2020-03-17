@@ -15,6 +15,11 @@ def flatten(collection):
             yield element
 
 
+def last_column(filename: str):
+    with open(filename, 'r') as file:
+        return f'Total amount of bytes: {sum(int(line.split(" ")[-1]) for line in file)}'
+
+
 def quick_sort_list_comprehension(collection: List):
     if len(collection) == 0:
         return []
@@ -33,12 +38,18 @@ def quick_sort_filter(collection: List):
         quick_sort_filter(list(filter(lambda x: x > head, tail)))
 
 
-def subsets_list_comprehension(collection: List):
+def subsets_short(collection: List):
     return chain.from_iterable(combinations(collection, i) for i in range(len(collection) + 1))
 
 
 def subsets(collection: List):
-    pass
+    if len(collection) == 0:
+        return [[]]
+    else:
+        head, tail = collection[0], collection[1:]
+        return subsets(tail) + [[head, *x] for x in subsets(tail)]
+        # alternative using map
+        # return subsets(tail) + list(map(lambda x: [head, *x], subsets(tail)))
 
 
 if __name__ == '__main__':
@@ -50,8 +61,11 @@ if __name__ == '__main__':
     list_ = [[1, 2, ["a", 4, "b", 5, 5, 5]], [4, 5, 6], 7, [[9, [123, [[123]]]], 10]]
     print(list(flatten(list_)))
     print(list(flatten(list_)) == [1, 2, 'a', 4, 'b', 5, 5, 5, 4, 5, 6, 7, 9, 123, 123, 10])
+    # task 3:
+    print(last_column('test.txt'))
     # task 4:
     print(list(quick_sort_list_comprehension([5, 7, 1, 1, 0, 9, 1, 0])))
     print(list(quick_sort_filter([5, 7, 1, 1, 0, 9, 1, 0])))
     # task 5:
-    print(list(subsets_list_comprehension([1, 2, 3])))
+    print(list(subsets_short([1, 2, 3])))
+    print(subsets([1, 2, 3]))
