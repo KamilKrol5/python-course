@@ -85,14 +85,14 @@ def generate_keys(key_length: int):
 
     private, public = compute_keys(prime1, prime2)
 
-    with open('key.pub', 'w+') as pub:
+    with open('key.pub', 'w') as pub:
         pub.write(hex(public[0]))
         pub.write('\n')
         pub.write(hex(public[1]))
         pub.write('\n')
         pub.write(hex(key_length//8))
 
-    with open('key.prv', 'w+') as prv:
+    with open('key.prv', 'w') as prv:
         prv.write(hex(private[0]))
         prv.write('\n')
         prv.write(hex(private[1]))
@@ -113,8 +113,13 @@ def decrypt_int(byte: int, key) -> int:
 def encrypt(data: bytes, key) -> List[int]:
     buffer_size = key[2]
     data = data + (b' ' * (buffer_size - (len(data) % buffer_size)))
-    return list(encrypt_int(
-        int.from_bytes(data[i:i+buffer_size], byteorder='big'), key) for i in range(0, len(data), buffer_size))
+    return [
+        encrypt_int(
+            int.from_bytes(data[i:i+buffer_size], byteorder='big'),
+            key
+        )
+        for i in range(0, len(data), buffer_size)
+    ]
 
 
 def decrypt(data: List[int], key) -> List[bytes]:
