@@ -5,7 +5,7 @@ def generate_random_tree(height: int):
     if height == 0:
         return None
 
-    value= random.randint(-height**2, height**2)
+    value= random.randint(-(height**2), height**2)
     subtree_random_height = generate_random_tree(random.randint(0, height - 1))
     subtree_high = generate_random_tree(height - 1)
 
