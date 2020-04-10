@@ -1,5 +1,5 @@
 import random
-
+from collections import deque
 
 def generate_random_tree(height: int):
     if height == 0:
@@ -25,16 +25,14 @@ def dfs(tree):
 def bfs(tree):
     if tree is None:
         return
-    stack = [tree]
-    while len(stack) > 0:
-        new_stack = []
-        for st in stack:
-            if st is None:
-                continue
-            yield st[0]
-            new_stack.append(st[1])
-            new_stack.append(st[2])
-        stack = new_stack.copy()
+    queue = deque([tree])
+    while len(queue) > 0:
+        st = queue.pop()
+        if st is None:
+            continue
+        yield st[0]
+        queue.append(st[1])
+        queue.append(st[2])
 
 
 if __name__ == '__main__':

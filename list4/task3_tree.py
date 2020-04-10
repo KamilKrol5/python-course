@@ -1,4 +1,5 @@
 import random
+from collections import deque
 
 
 class TreeNode:
@@ -38,14 +39,12 @@ def dfs(tree: TreeNode):
 def bfs(tree):
     if tree is None:
         return
-    stack = [tree]
-    while len(stack) > 0:
-        new_stack = []
-        for st in stack:
-            yield st.node_value
-            for sst in st.subtrees:
-                new_stack.append(sst)
-        stack = new_stack.copy()
+    queue = deque([tree])
+    while len(queue) > 0:
+        st = queue.pop()
+        yield st.node_value
+        for sst in st.subtrees:
+            queue.append(sst)
 
 
 if __name__ == '__main__':
