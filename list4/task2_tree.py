@@ -26,7 +26,7 @@ def bfs(tree):
     if tree is None:
         return
     queue = deque([tree])
-    while len(queue) > 0:
+    while queue:
         st = queue.pop()
         if st is None:
             continue

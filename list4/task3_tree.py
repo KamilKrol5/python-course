@@ -40,11 +40,10 @@ def bfs(tree):
     if tree is None:
         return
     queue = deque([tree])
-    while len(queue) > 0:
+    while queue:
         st = queue.pop()
         yield st.node_value
-        for sst in st.subtrees:
-            queue.append(sst)
+        queue.extend(st.subtrees)
 
 
 if __name__ == '__main__':
