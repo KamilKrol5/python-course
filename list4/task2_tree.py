@@ -1,11 +1,12 @@
 import random
 from collections import deque
 
+
 def generate_random_tree(height: int):
     if height == 0:
         return None
 
-    value= random.randint(-(height**2), height**2)
+    value = random.randint(-(height ** 2), height ** 2)
     subtree_random_height = generate_random_tree(random.randint(0, height - 1))
     subtree_high = generate_random_tree(height - 1)
 
@@ -14,18 +15,18 @@ def generate_random_tree(height: int):
     return [value, subtree_high, subtree_random_height]
 
 
-def dfs(tree):
-    if tree is None:
+def dfs(tree_):
+    if tree_ is None:
         return
-    yield tree[0]
-    yield from dfs(tree[1])
-    yield from dfs(tree[2])
+    yield tree_[0]
+    yield from dfs(tree_[1])
+    yield from dfs(tree_[2])
 
 
-def bfs(tree):
-    if tree is None:
+def bfs(tree_):
+    if tree_ is None:
         return
-    queue = deque([tree])
+    queue = deque([tree_])
     while queue:
         st = queue.pop()
         if st is None:
