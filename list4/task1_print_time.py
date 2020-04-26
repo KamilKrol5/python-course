@@ -3,9 +3,9 @@ from time import time
 
 
 def execution_time_printer(f):
-    def modified_f(*args):
+    def modified_f(*args, **kwargs):
         start = time()
-        f(*args)
+        f(*args, **kwargs)
         print(f'Execution time: {time() - start}')
     return modified_f
 
