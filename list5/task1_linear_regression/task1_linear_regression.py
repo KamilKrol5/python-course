@@ -21,7 +21,7 @@ user_ids = users[:, 1]
 def prepare_x(max_book_id, usr_ids):
     indexes = movie_ids[movie_ids <= max_book_id]
     ratings_ = ratings[(ratings['movieId'] <= max_book_id) & (ratings['userId'].isin(usr_ids))]
-    X_ = ratings_.pivot(index='userId', columns='movieId', values='rating').reindex(indexes, axis='columns').to_numpy()[:, 1:]
+    X_ = ratings_.pivot(index='userId', columns='movieId', values='rating').reindex(indexes[1:], axis='columns')
 
     np.nan_to_num(X_, copy=False)
     return X_
