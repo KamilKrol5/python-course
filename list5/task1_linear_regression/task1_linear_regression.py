@@ -21,12 +21,12 @@ user_ids = users['userId'].to_numpy()
 print(user_ids)
 
 # c = ratings[(ratings['movieId'] <= m) & (ratings['userId'].isin(user_ids))][['userId', 'movieId', 'rating']]
-c = users[(users['movieId'] <= m)]
+c = ratings[(ratings['movieId'] <= m) & (ratings['userId'].isin(user_ids))]
 print(c)
 X = np.zeros(shape=(len(Y), m))
 for i, u_id in enumerate(user_ids, 0):
     for j in range(0, m):
-        g = c[(c['userId'] == u_id) & (c['movieId'] == j+1)]['rating'].to_numpy()
+        g = c[(c['userId'] == u_id) & (c['movieId'] == j+2)]['rating'].to_numpy()
         print(g)
         if len(g) > 0:
             X[i][j] = g[0]
@@ -34,3 +34,5 @@ print(X)
 print(X.shape)
 clf = LinearRegression().fit(X, Y)
 print(clf)
+
+
