@@ -23,9 +23,7 @@ def prepare_x(m):
     return X
 
 
-for m in [10,100,1000,10000]:
+for m in [10, 100, 1000, 10000]:
     X = prepare_x(m)
     clf = LinearRegression().fit(X, Y)
     print(clf.score(X, Y))
-
-
