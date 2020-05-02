@@ -4,13 +4,13 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 
 # get id of 'Toy Story (1995)'
-movies = pd.read_csv('ml-latest-small/movies.csv')
+movies = pd.read_csv('../ml-latest-small/movies.csv')
 toy_story_id = movies[movies['title'] == 'Toy Story (1995)']['movieId'].to_numpy()[0]
 movie_ids = movies['movieId'].to_numpy()
 print(f'Toy Story id: {toy_story_id}')
 
 # get users (user Ids) who rated Toy Story
-ratings = pd.read_csv('ml-latest-small/ratings.csv')
+ratings = pd.read_csv('../ml-latest-small/ratings.csv')
 users = ratings[ratings['movieId'] == toy_story_id][['rating', 'userId']].to_numpy()
 Y = users[:, 0]
 # print(Y)
