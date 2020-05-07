@@ -1,45 +1,48 @@
 from pprint import pprint
+from typing import Union, List
+
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.sparse import lil_matrix
 import dask.dataframe as ddf
 
-# prepare data
-movies = pd.read_csv('../ml-latest-small/movies.csv')
-movies = movies[['movieId', 'title']]
-movie_ids = movies['movieId'].to_numpy()
-types = {'userId': int,
-         'movieId': int,
-         'rating': pd.SparseDtype(dtype='float32', fill_value=0.0)}
 
-chunks = ddf.read_csv('../ml-latest-small/ratings.csv')
-chunks = chunks.map_partitions(
-    lambda part:
-    part[['userId', 'movieId', 'rating']].astype(types, copy=False))
-ratings = chunks.compute()
-rating_matrix = ratings \
-    .pivot_table(index='userId', columns='movieId', values='rating') \
-    .fillna(0.0)
+def load_data(filename: str, columns: Union[List[str], List[int]]) -> ddf.DataFrame:
+    return ddf.read_csv(filename, usecols=columns, blocksize=1024 * 1024)
 
-# create movie profile
-user_ratings = lil_matrix((len(np.unique(ratings['movieId'])), 1))
-movie_indexes = dict(zip(np.unique(ratings['movieId']), np.arange(0, len(np.unique(ratings['movieId'])))))
-user_ratings[movie_indexes[2571]] = 5.0  # Matrix
-user_ratings[movie_indexes[32]] = 4.0  # Twelve Monkeys
-user_ratings[movie_indexes[260]] = 5.0  # Star Wars IV
-user_ratings[movie_indexes[1097]] = 4.0  # E.T. the Extra-Terrestrial
-user_ratings = user_ratings.reshape(1, -1)
 
-user_profile = cosine_similarity(rating_matrix, user_ratings, dense_output=False)
-user_profile_normalised = user_profile / np.linalg.norm(user_profile)
-user_profile_normalised = user_profile_normalised.reshape(1, -1)
+def compute_users_similarity(data_for_single_user: pd.DataFrame) -> object:
+    data_for_single_user = data_for_single_user.set_index('movieId')
+    data_for_single_user = data_for_single_user.reindex(movies.index).fillna(0.0)
+    return cosine_similarity(data_for_single_user.T, user_ratings.T)[0, 0]
 
-# recommendation
-recommendation_vector = cosine_similarity(rating_matrix.T, user_profile_normalised, dense_output=False)
-recommendation = [(similarity[0],  movies.iloc[index]['movieId'], movies.iloc[index]['title'])
-                  for index, similarity in enumerate(recommendation_vector)
-                  if similarity[0] > 0]
-recommendation.sort(key=lambda entry: entry[0], reverse=True)
-print(f'Movies count: {len(np.unique(ratings["movieId"]))}')
-pprint(recommendation[:50], width=140)
+
+def group_movies_recommendation(data_for_single_movie: pd.DataFrame) -> object:
+    data_for_single_movie = data_for_single_movie.set_index('userId')
+    data_for_single_movie = data_for_single_movie.reindex(profile.index).fillna(0.0)
+    return cosine_similarity(data_for_single_movie.T, profile.T)[0, 0]
+
+
+movies = load_data('../ml-latest-small/movies.csv', columns=['movieId', 'title'])
+movies = movies.set_index('movieId', sorted=True)
+movies: ddf.DataFrame = movies.loc[:10000].compute()
+
+ratings = load_data('../ml-latest-small/ratings.csv', columns=['userId', 'movieId', 'rating'])
+ratings: ddf.DataFrame = ratings.set_index('userId', sorted=True)
+ratings = ratings.repartition(ratings.divisions)
+
+user_ratings = {
+    2571: 5.0,  # Matrix
+    32: 4.0,  # Twelve Monkeys
+    260: 5.0,  # Star Wars IV
+    1097: 4.0  # E.T. the Extra-Terrestrial
+}
+user_ratings = pd.DataFrame.from_dict(user_ratings, orient='index', columns=['rating'])
+user_ratings = user_ratings.reindex(movies.index).fillna(0.0)
+profile = ratings.groupby('userId').apply(compute_users_similarity, meta=object)
+profile = pd.DataFrame(profile)
+
+ratings.reset_index().set_index('movieId').to_hdf('./ratings_by_movie_id.hdf', 'movieId')
+recommendation_vector = ddf.read_hdf('./ratings_by_movie_id.hdf', 'movieId', columns=['userId', 'rating'], sorted_index=True)
+recommendation_vector2 = recommendation_vector.groupby('movieId').apply(group_movies_recommendation, meta=object)
