@@ -52,12 +52,11 @@ class NeuralNetwork:
         return output
 
 
-
 if __name__ == '__main__':
     training_data_sets_ = np.array([[0, 0, 1],
-                                   [0, 1, 1],
-                                   [1, 0, 1],
-                                   [1, 1, 1]])
+                                    [0, 1, 1],
+                                    [1, 0, 1],
+                                    [1, 1, 1]])
     labels_ = np.array([[0], [1], [1], [0]])
     nn = NeuralNetwork(training_data_sets_, labels_)
     nn.learn(15000)
