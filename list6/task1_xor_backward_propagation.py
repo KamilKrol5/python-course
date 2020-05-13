@@ -1,5 +1,7 @@
+from collections import namedtuple
 import numpy as np
 from scipy.special import expit as sigmoid
+np.set_printoptions(suppress=True)
 
 
 def _sigmoid_gradient(x):
@@ -7,16 +9,31 @@ def _sigmoid_gradient(x):
     return fx * (1.0 - fx)
 
 
-class NeuralNetwork:
-    _HIDDEN_LAYER_NEURONS_COUNT = 4
+def _relu(x):
+    return np.maximum(0, x)
 
-    def __init__(self, training_data_sets, labels):
+
+def _relu_gradient(x):
+    return np.full(shape=x.shape, fill_value=1.0)
+
+
+class NeuralNetwork:
+    _ActivationFunctionUtils = namedtuple('_ActivationFunctionUtils', ['function', 'derivative'])
+    _HIDDEN_LAYER_NEURONS_COUNT = 4
+    _activation_functions = {
+        'sigmoid': _ActivationFunctionUtils(function=sigmoid, derivative=_sigmoid_gradient),
+        'relu': _ActivationFunctionUtils(function=_relu, derivative=_relu_gradient)
+    }
+
+    def __init__(self, training_data_sets, labels, activation_functions=('sigmoid', 'sigmoid')):
         self.training_data_sets = training_data_sets
         self.labels = labels
+        self.utils_input_to_layer1 = self._activation_functions[activation_functions[0]]
         self.weights_input_to_layer1 = np.random.rand(
             self._HIDDEN_LAYER_NEURONS_COUNT,
             self.training_data_sets.shape[1]
         )
+        self.utils_layer1_to_output = self._activation_functions[activation_functions[1]]
         self.weights_layer1_to_output = np.random.rand(labels.shape[1], self._HIDDEN_LAYER_NEURONS_COUNT)
         self.eta = 0.5
         self.output = np.zeros(self.labels.shape)
@@ -24,15 +41,18 @@ class NeuralNetwork:
         self.ready_for_prediction = False
 
     def feed_forward(self):
-        self.layer1 = sigmoid(np.dot(self.training_data_sets, self.weights_input_to_layer1.T))
-        self.output = sigmoid(np.dot(self.layer1, self.weights_layer1_to_output.T))
+        self.layer1 = self.utils_input_to_layer1.function(
+            np.dot(self.training_data_sets, self.weights_input_to_layer1.T)
+        )
+        self.output = self.utils_layer1_to_output.function(np.dot(self.layer1, self.weights_layer1_to_output.T))
 
     def back_propagation(self):
-        error_layer1_to_out = (self.labels - self.output) * _sigmoid_gradient(self.output)
+        error_layer1_to_out = (self.labels - self.output) * self.utils_layer1_to_output.derivative(self.output)
         weights_layer1_to_output_change = self.eta * np.dot(error_layer1_to_out.T, self.layer1)
 
         error_input_to_layer1 = \
-            _sigmoid_gradient(self.layer1) * np.dot(error_layer1_to_out, self.weights_layer1_to_output)
+            self.utils_input_to_layer1.derivative(self.layer1) * \
+            np.dot(error_layer1_to_out, self.weights_layer1_to_output)
         weights_input_to_layer1_change = self.eta * np.dot(error_input_to_layer1.T, self.training_data_sets)
 
         self.weights_input_to_layer1 += weights_input_to_layer1_change
@@ -44,32 +64,69 @@ class NeuralNetwork:
             self.back_propagation()
         self.ready_for_prediction = True
 
-    def predict(self, data_set):
+    def predict(self, input_data_set):
         if not self.ready_for_prediction:
             raise RuntimeError('Neural network must learn before it can make any predictions')
-        layer1 = sigmoid(np.dot(data_set, self.weights_input_to_layer1.T))
-        output = sigmoid(np.dot(layer1, self.weights_layer1_to_output.T))
+        layer1 = self.utils_input_to_layer1.function(np.dot(input_data_set, self.weights_input_to_layer1.T))
+        output = self.utils_layer1_to_output.function(np.dot(layer1, self.weights_layer1_to_output.T))
         return output
 
 
-if __name__ == '__main__':
-    training_data_sets_ = np.array([[0, 0, 1],
-                                    [0, 1, 1],
-                                    [1, 0, 1],
-                                    [1, 1, 1]])
-    labels_ = np.array([[0], [1], [1], [0]])
-    nn = NeuralNetwork(training_data_sets_, labels_)
-    nn.learn(15000)
-    print(nn.output)
+def test_activation_functions(training_data_sets, labels, learning_iterations):
+    networks = {
+        'nn_ss': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'sigmoid')),
+        'nn_sr': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'relu')),
+        'nn_rs': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'sigmoid')),
+        'nn_rr': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'relu')),
+    }
+    for name, network in networks.items():
+        network.learn(learning_iterations)
+        error = 0.5 * np.sum(labels - network.output)
+        print(f'Cost function value for neural network "{name}": {error}')
+        print(network.output)
 
+
+def default_test(training_data_sets, labels, test_title=''):
+    print(test_title)
+    nn = NeuralNetwork(training_data_sets, labels)
+    nn.learn(5000)
+    # print(nn.output)
     # the same data s in training data set
     print(nn.predict([[0, 0, 1],
                       [0, 1, 1],
                       [1, 0, 1],
                       [1, 1, 1]]))
-
     # new previously unknown dataset
     print(nn.predict([[0, 0, 0],
                       [1, 1, 0],
                       [0, 1, 0],
                       [1, 0, 0]]))
+    print('---')
+
+
+if __name__ == '__main__':
+    xor_training_data_set = np.array([[0, 0, 1],
+                                      [0, 1, 1],
+                                      [1, 0, 1],
+                                      [1, 1, 1]])
+    xor_labels_ = np.array([[1], [0], [0], [1]])
+
+    and_training_data_set = np.array([[1, 1, 1],
+                                      [1, 0, 0],
+                                      [0, 1, 0],
+                                      [0, 0, 0]])
+    and_labels_ = np.array([[1], [0], [0], [0]])
+
+    or_training_data_set = np.array([[0, 0, 0],
+                                     [0, 1, 1],
+                                     [1, 0, 1],
+                                     [1, 1, 1]])
+    or_labels_ = np.array([[0], [1], [1], [1]])
+
+    print('--- DEFAULT TEST ---')
+    default_test(xor_training_data_set, xor_labels_, 'xor')
+    default_test(and_training_data_set, and_labels_, 'and')
+    default_test(or_training_data_set, or_labels_, 'or')
+
+    print('--- ACTIVATION FUNCTIONS TEST ---')
+    test_activation_functions(xor_training_data_set, xor_labels_, 15000)
