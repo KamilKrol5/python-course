@@ -37,6 +37,6 @@ recommendation = [(entry['similarity'], *movies.loc[index])
                   for index, entry in recommendation_vector.iterrows()
                   ]
 recommendation.sort(key=lambda entry: entry[0], reverse=True)
-print(f'Movies count: {len(movie_ids)}')
+print(f'Movies count: {len(recommendation_vector)}')
 pprint(recommendation[:50], width=140)
 
