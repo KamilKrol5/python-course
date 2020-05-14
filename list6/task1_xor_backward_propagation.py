@@ -4,9 +4,8 @@ from scipy.special import expit as sigmoid
 np.set_printoptions(suppress=True)
 
 
-def _sigmoid_gradient(x):
-    fx = sigmoid(x)
-    return fx * (1.0 - fx)
+def _sigmoid_star(x):
+    return x * (1.0 - x)
 
 
 def _relu(x):
@@ -21,7 +20,7 @@ class NeuralNetwork:
     _ActivationFunctionUtils = namedtuple('_ActivationFunctionUtils', ['function', 'derivative'])
     _HIDDEN_LAYER_NEURONS_COUNT = 4
     _activation_functions = {
-        'sigmoid': _ActivationFunctionUtils(function=sigmoid, derivative=_sigmoid_gradient),
+        'sigmoid': _ActivationFunctionUtils(function=sigmoid, derivative=_sigmoid_star),
         'relu': _ActivationFunctionUtils(function=_relu, derivative=_relu_gradient)
     }
 
