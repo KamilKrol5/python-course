@@ -1,38 +1,21 @@
-from collections import namedtuple
 import numpy as np
-from scipy.special import expit as sigmoid
+from activation_function_utils import activation_functions_utils
+
 np.set_printoptions(suppress=True)
 
 
-def _sigmoid_star(x):
-    return x * (1.0 - x)
-
-
-def _relu(x):
-    return np.maximum(0, x)
-
-
-def _relu_gradient(x):
-    return np.where(x > 0, 1, 0)
-
-
 class NeuralNetwork:
-    _ActivationFunctionUtils = namedtuple('_ActivationFunctionUtils', ['function', 'derivative'])
     _HIDDEN_LAYER_NEURONS_COUNT = 4
-    _activation_functions = {
-        'sigmoid': _ActivationFunctionUtils(function=sigmoid, derivative=_sigmoid_star),
-        'relu': _ActivationFunctionUtils(function=_relu, derivative=_relu_gradient)
-    }
 
     def __init__(self, training_data_sets, labels, activation_functions=('sigmoid', 'sigmoid')):
         self.training_data_sets = training_data_sets
         self.labels = labels
-        self.utils_input_to_layer1 = self._activation_functions[activation_functions[0]]
+        self.utils_input_to_layer1 = activation_functions_utils[activation_functions[0]]
         self.weights_input_to_layer1 = np.random.rand(
             self._HIDDEN_LAYER_NEURONS_COUNT,
             self.training_data_sets.shape[1]
         )
-        self.utils_layer1_to_output = self._activation_functions[activation_functions[1]]
+        self.utils_layer1_to_output = activation_functions_utils[activation_functions[1]]
         self.weights_layer1_to_output = np.random.rand(labels.shape[1], self._HIDDEN_LAYER_NEURONS_COUNT)
         self.eta = 0.5
         self.output = np.zeros(self.labels.shape)
@@ -80,7 +63,7 @@ def test_activation_functions(training_data_sets, labels, learning_iterations):
     }
     for name, network in networks.items():
         network.learn(learning_iterations)
-        error = 0.5 * np.sum(labels - network.output)
+        error = 0.5 * abs(np.sum(labels - network.output))
         print(f'Cost function value for neural network "{name}": {error}')
         print(network.output)
 
