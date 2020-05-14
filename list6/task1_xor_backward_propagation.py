@@ -14,7 +14,7 @@ def _relu(x):
 
 
 def _relu_gradient(x):
-    return np.full(shape=x.shape, fill_value=1.0)
+    return np.where(x > 0, 1, 0)
 
 
 class NeuralNetwork:
@@ -89,7 +89,7 @@ def test_activation_functions(training_data_sets, labels, learning_iterations):
 def default_test(training_data_sets, labels, test_title=''):
     print(test_title)
     nn = NeuralNetwork(training_data_sets, labels)
-    nn.learn(5000)
+    nn.learn(15000)
     # print(nn.output)
     # the same data s in training data set
     print(nn.predict([[0, 0, 1],
