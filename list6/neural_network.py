@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from activation_function_utils import activation_functions_utils, ActivationFunctionUtils
@@ -78,11 +79,14 @@ class NeuralNetwork:
         for layer in self.hidden_layers:
             layer.update_weights()
 
-    def learn(self, iterations):
-        for _ in range(iterations):
-            self.hidden_layers[0].values = self.training_data_sets
+    def learn(self, iterations, draw=None):
+        self.hidden_layers[0].values = self.training_data_sets
+        for i in range(iterations):
             self._feed_forward()
             self._back_propagation()
+            if draw is not None and i % draw == 0:
+                plt.scatter(self.training_data_sets, self.output)
+                plt.show()
         self.ready_for_prediction = True
 
     def predict(self, input_data_set):
