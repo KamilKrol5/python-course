@@ -23,6 +23,6 @@ ActivationFunctionUtils = namedtuple('_ActivationFunctionUtils', ['function', 'd
 
 activation_functions_utils = {
     'sigmoid': ActivationFunctionUtils(function=sigmoid, derivative=_sigmoid_star),
-    'relu': ActivationFunctionUtils(function=_relu, derivative=_relu_gradient).function,
+    'relu': ActivationFunctionUtils(function=_relu, derivative=_relu_gradient),
     'tanh': ActivationFunctionUtils(function=np.tanh, derivative=tanh_derivative)
 }
