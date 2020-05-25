@@ -1,6 +1,5 @@
 from typing import List
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from activation_function_utils import (
@@ -55,9 +54,9 @@ class NeuralNetwork:
         self.input_layer_neuron_count = self.hidden_layers_info[0].neurons_count
         self.hidden_layers = self._create_hidden_layers()
 
-        self.eta = 0.5
+        self.eta = 0.02
 
-    def _feed_forward(
+    def feed_forward(
             self,
             training_data_sets: np.ndarray,
     ) -> None:
@@ -77,8 +76,19 @@ class NeuralNetwork:
         self.output = last_hidden_layer.utils.function(
             np.dot(last_hidden_layer.values, last_hidden_layer.weights.T)
         )
+        # input_layer = self.hidden_layers[0]
+        # # print('out=', self.output)
+        # # print('l1', self.hidden_layers[0].values)
+        # # print('l5', self.hidden_layers[1].values)
+        # input_layer.values = training_data_sets
+        # assert input_layer.info.neurons_count == 1
+        # self.hidden_layers[1].values = input_layer.utils.function(
+        #     np.dot(training_data_sets, input_layer.weights.T))
+        # self.output = self.hidden_layers[1].utils.function(
+        #     np.dot(self.hidden_layers[1].values, self.hidden_layers[1].weights.T))
+        # print('out after=', self.output)
 
-    def _back_propagation(
+    def back_propagation(
             self,
             labels: np.ndarray
     ) -> None:
@@ -91,14 +101,8 @@ class NeuralNetwork:
         """
         deltas = []
         last_hidden_layer = self.hidden_layers[-1]
-        # print(self.labels - self.output)
-        error = (labels - self.output) * last_hidden_layer.utils.derivative(
-            self.output
-        )
-        # print('__', error)
-        deltas.append(self.eta * np.dot(
-            error.T, last_hidden_layer.values
-        ))
+        error = (labels - self.output) * last_hidden_layer.utils.derivative(self.output)
+        deltas.append(self.eta * np.dot(error.T, last_hidden_layer.values))
 
         for layer, next_layer in zip(
                 reversed(self.hidden_layers[0:-1]), reversed(self.hidden_layers[1:])
@@ -110,20 +114,31 @@ class NeuralNetwork:
 
         for layer, weights_change in zip(self.hidden_layers, reversed(deltas)):
             layer.weights += weights_change
+        # last_layer = self.hidden_layers[-1]
+        # delta2 = (labels - self.output) * \
+        #          last_layer.utils.derivative(self.output)
+        # d_weights2 = self.eta * np.dot(delta2.T, last_layer.values)
+        #
+        # delta1 = self.hidden_layers[0].utils.derivative(last_layer.values) * \
+        #          np.dot(delta2, last_layer.weights)
+        # d_weights1 = self.eta * np.dot(delta1.T, self.hidden_layers[0].values)
+        #
+        # self.hidden_layers[0].weights += d_weights1
+        # self.hidden_layers[1].weights += d_weights2
 
     def _create_hidden_layers(self) -> List[NeuralNetworkHiddenLayer]:
         hidden_layers = []
         for layer_info, next_layer_info in zip(
                 self.hidden_layers_info[0:-1], self.hidden_layers_info[1:]
         ):
-            weights = np.random.rand(
-                next_layer_info.neurons_count, layer_info.neurons_count,
+            weights = np.random.standard_normal(
+                (next_layer_info.neurons_count, layer_info.neurons_count)
             )
             hidden_layers.append(NeuralNetworkHiddenLayer(layer_info, weights))
 
         last_hidden_layer_info = self.hidden_layers_info[-1]
-        last_hidden_layer_info_weights = np.random.rand(
-            self.output.shape[1], last_hidden_layer_info.neurons_count
+        last_hidden_layer_info_weights = np.random.standard_normal(
+            (self.output.shape[1], last_hidden_layer_info.neurons_count)
         )
         hidden_layers.append(
             NeuralNetworkHiddenLayer(
@@ -137,7 +152,6 @@ class NeuralNetwork:
             training_data_sets: np.ndarray,
             labels: np.ndarray,
             iterations: int,
-            draw=None,
     ) -> None:
         """
         Method which trains the network using gradient descent and backward propagation methods.
@@ -150,19 +164,14 @@ class NeuralNetwork:
             iterations (int): Number of iterations that should be performed
                 when learning the network with provided data.
         """
-
         if training_data_sets is None:
             raise RuntimeError("The network cannot learn when learning data is not provided.")
 
         self.hidden_layers[0].values = training_data_sets
         for i in range(iterations):
-            self._feed_forward(training_data_sets)
-            self._back_propagation(labels)
-            if draw is not None and i % draw == 0:
-                plt.scatter(training_data_sets, self.output, 10)
-                plt.title(f'Iteration: {i}')
-                plt.show()
+            self.feed_forward(training_data_sets)
+            self.back_propagation(labels)
 
     def predict(self, input_data_set: np.ndarray) -> np.ndarray:
-        self._feed_forward(input_data_set)
+        self.feed_forward(input_data_set)
         return self.output
