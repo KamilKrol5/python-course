@@ -33,13 +33,17 @@ def learn_parabolic():
     expected_from_test = test_data ** 2
     nn = NeuralNetwork(
         [NeuralNetworkHiddenLayerInfo('relu', 1), NeuralNetworkHiddenLayerInfo('sigmoid', 5)],
+        1
+    )
+    nn.learn(
         scale_data(test_data, (0, 1)).reshape((-1, 1)),
         (scale_data(expected_from_test, (0, 1))).reshape((-1, 1)),
+        300000,
+        draw=100000
     )
-    nn.learn(300000, draw=100000)
 
 
-def learn_sinus():
+def learn_sine():
     training_data = np.linspace(0, 2, 21)
     labels = np.sin((3 * np.pi / 2) * training_data)
     plt.scatter(training_data, labels)
@@ -50,26 +54,34 @@ def learn_sinus():
     expected_from_test = np.sin((3 * np.pi / 2) * test_data)
     nn = NeuralNetwork(
         [NeuralNetworkHiddenLayerInfo('sigmoid', 1), NeuralNetworkHiddenLayerInfo('sigmoid', 5)],
+        1
+    )
+    nn.learn(
         scale_data(test_data).reshape((-1, 1)),
         scale_data(expected_from_test).reshape((-1, 1)),
+        10000,
+        draw=1000
     )
-    nn.learn(10000, draw=1000)
 
 
 def learn_test():
     test_data = np.linspace(-10, 10, 10)
-    expected_from_test = -test_data**2
+    expected_from_test = -test_data ** 2
 
     nn = NeuralNetwork(
         [NeuralNetworkHiddenLayerInfo('relu', 1), NeuralNetworkHiddenLayerInfo('sigmoid', 5)],
+        1
+    )
+    nn.learn(
         scale_data(test_data).reshape((-1, 1)),
         scale_data(expected_from_test).reshape((-1, 1)),
+        100000,
+        draw=10000
     )
-    nn.learn(100000, draw=10000)
-    plt.scatter(scale_data(nn.training_data_sets, (-10, 10)), scale_data(expected_from_test, (0, 100)))
+    plt.scatter(test_data, expected_from_test)
     plt.title(f'Init')
     plt.show()
-    plt.scatter(scale_data(nn.training_data_sets, (-10, 10)), scale_data(nn.output, (0, 100)))
+    plt.scatter(test_data, nn.output)
     plt.title(f'End')
     plt.show()
 
