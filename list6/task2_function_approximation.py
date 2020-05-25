@@ -1,7 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-from neural_network import NeuralNetwork, NeuralNetworkHiddenLayer
+from neural_network import NeuralNetwork, NeuralNetworkHiddenLayerInfo
 
 
 def scale_data(data: np.ndarray, target_range=(0, 1)) -> np.ndarray:
@@ -18,6 +18,8 @@ def test_scale_data():
     t2 = np.linspace(2, 4, 8)
     print(scale_data(t2, (0, 1)))
     print(scale_data(t2, (10, 90)))
+    t3 = np.linspace(-50, 50, 26)
+    print(scale_data(t3, (0, 1)))
 
 
 def learn_parabolic():
@@ -27,13 +29,14 @@ def learn_parabolic():
     plt.title('y=x^2')
     plt.show()
 
-    test_data = np.linspace(-50, 50, 101)
+    test_data = np.linspace(-50, 50, 26)
     expected_from_test = test_data ** 2
-    nn = NeuralNetwork(scale_data(test_data, (-1, 1)).reshape((-1, 1)),
-                       (scale_data(expected_from_test, (-1, 1))).reshape((-1, 1)),
-                       [NeuralNetworkHiddenLayer('sigmoid', 1), NeuralNetworkHiddenLayer('sigmoid', 5)]
-                       )
-    nn.learn(8000, draw=1000)
+    nn = NeuralNetwork(
+        [NeuralNetworkHiddenLayerInfo('relu', 1), NeuralNetworkHiddenLayerInfo('sigmoid', 5)],
+        scale_data(test_data, (0, 1)).reshape((-1, 1)),
+        (scale_data(expected_from_test, (0, 1))).reshape((-1, 1)),
+    )
+    nn.learn(300000, draw=100000)
 
 
 def learn_sinus():
@@ -45,15 +48,34 @@ def learn_sinus():
 
     test_data = np.linspace(0, 2, 161)
     expected_from_test = np.sin((3 * np.pi / 2) * test_data)
-    nn = NeuralNetwork(scale_data(test_data).reshape((-1, 1)),
-                       scale_data(expected_from_test).reshape((-1, 1)),
-                       [NeuralNetworkHiddenLayer('sigmoid', 1), NeuralNetworkHiddenLayer('sigmoid', 5)]
-                       )
+    nn = NeuralNetwork(
+        [NeuralNetworkHiddenLayerInfo('sigmoid', 1), NeuralNetworkHiddenLayerInfo('sigmoid', 5)],
+        scale_data(test_data).reshape((-1, 1)),
+        scale_data(expected_from_test).reshape((-1, 1)),
+    )
     nn.learn(10000, draw=1000)
 
 
+def learn_test():
+    test_data = np.linspace(-10, 10, 10)
+    expected_from_test = -test_data**2
+
+    nn = NeuralNetwork(
+        [NeuralNetworkHiddenLayerInfo('relu', 1), NeuralNetworkHiddenLayerInfo('sigmoid', 5)],
+        scale_data(test_data).reshape((-1, 1)),
+        scale_data(expected_from_test).reshape((-1, 1)),
+    )
+    nn.learn(100000, draw=10000)
+    plt.scatter(scale_data(nn.training_data_sets, (-10, 10)), scale_data(expected_from_test, (0, 100)))
+    plt.title(f'Init')
+    plt.show()
+    plt.scatter(scale_data(nn.training_data_sets, (-10, 10)), scale_data(nn.output, (0, 100)))
+    plt.title(f'End')
+    plt.show()
+
+
 if __name__ == '__main__':
-
-    learn_parabolic()
-    learn_sinus()
-
+    test_scale_data()
+    # learn_parabolic()
+    # learn_sinus()
+    learn_test()
