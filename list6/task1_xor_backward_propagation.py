@@ -1,4 +1,5 @@
 import numpy as np
+
 from activation_function_utils import activation_functions_utils
 
 np.set_printoptions(suppress=True)
@@ -54,61 +55,87 @@ class NeuralNetwork:
         return output
 
 
-def test_activation_functions(training_data_sets, labels, learning_iterations):
+def test_activation_functions(training_data_sets, labels, test_data_sets, test_labels, learning_iterations):
     networks = {
-        'nn_ss': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'sigmoid')),
-        'nn_sr': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'relu')),
-        'nn_rs': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'sigmoid')),
-        'nn_rr': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'relu')),
+        'nn: sigmoid sigmoid': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'sigmoid')),
+        'nn: sigmoid relu': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'relu')),
+        'nn: relu sigmoid': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'sigmoid')),
+        'nn: relu relu': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'relu')),
     }
     for name, network in networks.items():
         network.learn(learning_iterations)
-        error = 0.5 * abs(np.sum(labels - network.output))
-        print(f'Cost function value for neural network "{name}": {error}')
-        print(network.output)
+        error = np.square(labels - network.output).mean()
+        print(f'Cost function value for TRAINING data for neural network "{name}": {error}')
+        print(f'Got: {", ".join(str(x[0]) for x in network.output)}, expected: {", ".join(str(x[0]) for x in labels)}')
+
+        network.predict(test_data_sets)
+        error2 = np.square(test_labels - network.output).mean()
+        print(f'Cost function value for TEST data for neural network "{name}": {error2}')
+        print(f'Got: {", ".join(str(x[0]) for x in network.output)}, '
+              f'expected: {", ".join(str(x[0]) for x in test_labels)}')
+        print('---')
 
 
-def default_test(training_data_sets, labels, test_title=''):
+def default_test(data_, test_title=''):
     print(test_title)
-    nn = NeuralNetwork(training_data_sets, labels)
+    nn = NeuralNetwork(data_['training'], data_['training_labels'])
     nn.learn(15000)
-    # print(nn.output)
-    # the same data s in training data set
-    print(nn.predict([[0, 0, 1],
-                      [0, 1, 1],
-                      [1, 0, 1],
-                      [1, 1, 1]]))
-    # new previously unknown dataset
-    print(nn.predict([[0, 0, 0],
-                      [1, 1, 0],
-                      [0, 1, 0],
-                      [1, 0, 0]]))
+    print(nn.predict(data_['training']))
+    print(nn.predict(data_['test']))
     print('---')
 
 
 if __name__ == '__main__':
-    xor_training_data_set = np.array([[0, 0, 1],
-                                      [0, 1, 1],
-                                      [1, 0, 1],
-                                      [1, 1, 1]])
-    xor_labels_ = np.array([[1], [0], [0], [1]])
-
-    and_training_data_set = np.array([[1, 1, 1],
-                                      [1, 0, 0],
-                                      [0, 1, 0],
-                                      [0, 0, 0]])
-    and_labels_ = np.array([[1], [0], [0], [0]])
-
-    or_training_data_set = np.array([[0, 0, 0],
-                                     [0, 1, 1],
-                                     [1, 0, 1],
-                                     [1, 1, 1]])
-    or_labels_ = np.array([[0], [1], [1], [1]])
+    data = {
+        'xor': {
+            'training': np.array([[0, 0, 1],
+                                  [0, 1, 1],
+                                  [1, 0, 1],
+                                  [1, 1, 1]]),
+            'training_labels': np.array([[1], [0], [0], [1]]),
+            'test': np.array([[0, 0, 0],
+                              [1, 1, 0],
+                              [0, 1, 0],
+                              [1, 0, 0]]),
+            'test_labels': np.array([[0], [0], [1], [1]]),
+        },
+        'and': {
+            'training': np.array([[1, 1, 1],
+                                  [1, 0, 0],
+                                  [0, 1, 0],
+                                  [0, 0, 0]]),
+            'training_labels': np.array([[1], [0], [0], [0]]),
+            'test': np.array([[1, 1, 0],
+                              [1, 0, 1],
+                              [0, 0, 1],
+                              [0, 1, 1]]),
+            'test_labels': np.array([[0], [0], [0], [0]]),
+        },
+        'or': {
+            'training': np.array([[0, 0, 0],
+                                  [0, 1, 1],
+                                  [1, 0, 1],
+                                  [1, 1, 1]]),
+            'training_labels': np.array([[0], [1], [1], [1]]),
+            'test': np.array([[0, 0, 1],
+                              [0, 1, 0],
+                              [1, 1, 0],
+                              [1, 0, 0]]),
+            'test_labels': np.array([[1], [1], [1], [1]]),
+        }
+    }
 
     print('--- DEFAULT TEST ---')
-    default_test(xor_training_data_set, xor_labels_, 'xor')
-    default_test(and_training_data_set, and_labels_, 'and')
-    default_test(or_training_data_set, or_labels_, 'or')
+    default_test(data['xor'], 'xor')
+    default_test(data['and'], 'and')
+    default_test(data['or'], 'or')
 
     print('--- ACTIVATION FUNCTIONS TEST ---')
-    test_activation_functions(xor_training_data_set, xor_labels_, 15000)
+    print('XOR:')
+    test_activation_functions(
+        data['xor']['training'],
+        data['xor']['training_labels'],
+        data['xor']['test'],
+        data['xor']['test_labels'],
+        15000,
+    )
