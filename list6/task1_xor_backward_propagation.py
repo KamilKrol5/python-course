@@ -57,20 +57,21 @@ class NeuralNetwork:
 
 def test_activation_functions(training_data_sets, labels, test_data_sets, test_labels, learning_iterations):
     networks = {
-        'nn: sigmoid sigmoid': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'sigmoid')),
-        'nn: sigmoid relu': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'relu')),
-        'nn: relu sigmoid': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'sigmoid')),
-        'nn: relu relu': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'relu')),
+        'sigmoid sigmoid': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'sigmoid')),
+        'sigmoid relu': NeuralNetwork(training_data_sets, labels, activation_functions=('sigmoid', 'relu')),
+        'relu sigmoid': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'sigmoid')),
+        'relu relu': NeuralNetwork(training_data_sets, labels, activation_functions=('relu', 'relu')),
     }
     for name, network in networks.items():
         network.learn(learning_iterations)
         error = np.square(labels - network.output).mean()
-        print(f'Cost function value for TRAINING data for neural network "{name}": {error}')
-        print(f'Got: {", ".join(str(x[0]) for x in network.output)}, expected: {", ".join(str(x[0]) for x in labels)}')
+        print(f'Cost function value for TRAINING data for:\n"{name}": {error}')
+        print(f'Got: {", ".join(str(x[0]) for x in network.output)}, '
+              f'expected: {", ".join(str(x[0]) for x in labels)}\n')
 
         network.predict(test_data_sets)
         error2 = np.square(test_labels - network.output).mean()
-        print(f'Cost function value for TEST data for neural network "{name}": {error2}')
+        print(f'Cost function value for TEST data for:\n "{name}": {error2}')
         print(f'Got: {", ".join(str(x[0]) for x in network.output)}, '
               f'expected: {", ".join(str(x[0]) for x in test_labels)}')
         print('---')
@@ -125,17 +126,35 @@ if __name__ == '__main__':
         }
     }
 
-    print('--- DEFAULT TEST ---')
-    default_test(data['xor'], 'xor')
-    default_test(data['and'], 'and')
-    default_test(data['or'], 'or')
+    # print('--- DEFAULT TEST ---')
+    # default_test(data['xor'], 'xor')
+    # default_test(data['and'], 'and')
+    # default_test(data['or'], 'or')
 
     print('--- ACTIVATION FUNCTIONS TEST ---')
-    print('XOR:')
+    print('---------------------------------------------------------XOR:')
     test_activation_functions(
         data['xor']['training'],
         data['xor']['training_labels'],
         data['xor']['test'],
         data['xor']['test_labels'],
+        15000,
+    )
+
+    print('---------------------------------------------------------AND:')
+    test_activation_functions(
+        data['and']['training'],
+        data['and']['training_labels'],
+        data['and']['test'],
+        data['and']['test_labels'],
+        15000,
+    )
+
+    print('---------------------------------------------------------OR:')
+    test_activation_functions(
+        data['or']['training'],
+        data['or']['training_labels'],
+        data['or']['test'],
+        data['or']['test_labels'],
         15000,
     )
