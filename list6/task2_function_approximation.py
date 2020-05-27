@@ -46,7 +46,7 @@ def learn_function(training_data_x, training_data_y, test_data_x, test_data_y, n
     scaled_x_test = scaler_x.fit_transform(test_data_x)
     # learning
     draw = 10000
-    for i in range(1000000):
+    for i in range(100000):
         nn.feed_forward(scaled_x_train)
         nn.back_propagation(scaled_y_train)
 
@@ -75,15 +75,25 @@ def learn_parabolic():
     labels = training_data ** 2
     test_data = np.linspace(-50, 50, 101)
     expected_from_test = test_data ** 2
-    learn_function(training_data, labels, test_data, expected_from_test)
+    nn = NeuralNetwork(
+        [NeuralNetworkHiddenLayerInfo('sigmoid', 1),
+         NeuralNetworkHiddenLayerInfo('sigmoid', 5)],
+        1
+    )
+    learn_function(training_data, labels, test_data, expected_from_test, nn)
 
 
 def learn_sine():
     training_data = np.linspace(0, 2, 21)
     labels = np.sin((3 * np.pi / 2) * training_data)
-    test_data = np.linspace(0, 2, 101)
+    test_data = np.linspace(0, 2, 161)
     expected_from_test = np.sin((3 * np.pi / 2) * test_data)
-    learn_function(training_data, labels, test_data, expected_from_test)
+    nn = NeuralNetwork(
+        [NeuralNetworkHiddenLayerInfo('tanh', 1),
+         NeuralNetworkHiddenLayerInfo('tanh', 5)],
+        1
+    )
+    learn_function(training_data, labels, test_data, expected_from_test, nn)
 
 
 def learn_test():
@@ -93,7 +103,5 @@ def learn_test():
 
 
 if __name__ == '__main__':
-    # test_scale_data()
     learn_parabolic()
-    # learn_sine()
-    # learn_test()
+    learn_sine()
