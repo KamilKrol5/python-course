@@ -14,18 +14,7 @@ def scale_data(data: np.ndarray, target_range=(0, 1)) -> np.ndarray:
     return scaler.fit_transform(data)
 
 
-def test_scale_data():
-    t1 = np.linspace(-50, -45, 5)
-    print(scale_data(t1, (45, 50)))
-    print(scale_data(t1, (0, 1)))
-    t2 = np.linspace(2, 4, 8)
-    print(scale_data(t2, (0, 1)))
-    print(scale_data(t2, (10, 90)))
-    t3 = np.linspace(-50, 50, 26)
-    print(scale_data(t3, (0, 1)))
-
-
-def learn_function(training_data_x, training_data_y, test_data_x, test_data_y, nn: NeuralNetwork=None):
+def learn_function(training_data_x, training_data_y, test_data_x, test_data_y, nn: NeuralNetwork = None):
     training_data_x = training_data_x.reshape((-1, 1))
     training_data_y = training_data_y.reshape((-1, 1))
     test_data_x = test_data_x.reshape((-1, 1))
