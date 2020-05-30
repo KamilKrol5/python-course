@@ -35,7 +35,8 @@ class NeuralNetwork:
     def __init__(
             self,
             hidden_layers_info: List[NeuralNetworkHiddenLayerInfo],
-            output_neurons_count
+            output_neurons_count,
+            eta=0.02
     ):
         """
         Args:
@@ -55,7 +56,7 @@ class NeuralNetwork:
         self.input_layer_neuron_count = self.hidden_layers_info[0].neurons_count
         self.hidden_layers = self._create_hidden_layers()
 
-        self.eta = 0.02
+        self.eta = eta
 
     def feed_forward(
             self,
