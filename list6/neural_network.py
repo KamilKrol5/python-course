@@ -17,13 +17,14 @@ class NeuralNetworkHiddenLayerInfo:
 
 
 class NeuralNetworkHiddenLayer:
-    def __init__(self, basic_info: NeuralNetworkHiddenLayerInfo, weights: np.ndarray):
+    def __init__(self, basic_info: NeuralNetworkHiddenLayerInfo, weights: np.ndarray, biases: np.ndarray):
         self.info = basic_info
         self.utils: ActivationFunctionUtils = activation_functions_utils[
             basic_info.activation_function_name
         ]
         self.weights: np.ndarray = weights
         self.values: np.ndarray = np.zeros(shape=(self.info.neurons_count,))
+        self.biases = biases
 
 
 class NeuralNetwork:
@@ -70,7 +71,7 @@ class NeuralNetwork:
         input_layer.values = training_data_sets
         for layer, next_layer in zip(self.hidden_layers[0:-1], self.hidden_layers[1:]):
             next_layer.values = layer.utils.function(
-                np.dot(layer.values, layer.weights.T)
+                np.dot(layer.values, layer.weights.T) + layer.biases.reshape(1, -1)
             )
         last_hidden_layer = self.hidden_layers[-1]
         self.output = last_hidden_layer.utils.function(
@@ -100,9 +101,11 @@ class NeuralNetwork:
                 It's dimensions must be consistent with training data sets and first layer's neuron count.
         """
         deltas = []
+        bias_deltas = []
         last_hidden_layer = self.hidden_layers[-1]
         error = (labels - self.output) * last_hidden_layer.utils.derivative(self.output)
         deltas.append(self.eta * np.dot(error.T, last_hidden_layer.values))
+        bias_deltas.append(self.eta * np.sum(error, axis=0, keepdims=True))
 
         for layer, next_layer in zip(
                 reversed(self.hidden_layers[0:-1]), reversed(self.hidden_layers[1:])
@@ -111,9 +114,11 @@ class NeuralNetwork:
                 error, next_layer.weights
             )
             deltas.append(self.eta * np.dot(error.T, layer.values))
+            bias_deltas.append(self.eta * np.sum(error, axis=0, keepdims=True))
 
-        for layer, weights_change in zip(self.hidden_layers, reversed(deltas)):
+        for layer, weights_change, bias_change in zip(self.hidden_layers, reversed(deltas), reversed(bias_deltas)):
             layer.weights += weights_change
+            layer.biases += bias_change.reshape(-1)
         # last_layer = self.hidden_layers[-1]
         # delta2 = (labels - self.output) * \
         #          last_layer.utils.derivative(self.output)
@@ -134,15 +139,17 @@ class NeuralNetwork:
             weights = np.random.standard_normal(
                 (next_layer_info.neurons_count, layer_info.neurons_count)
             )
-            hidden_layers.append(NeuralNetworkHiddenLayer(layer_info, weights))
+            biases = np.random.rand(next_layer_info.neurons_count)
+            hidden_layers.append(NeuralNetworkHiddenLayer(layer_info, weights, biases))
 
         last_hidden_layer_info = self.hidden_layers_info[-1]
         last_hidden_layer_info_weights = np.random.standard_normal(
             (self.output.shape[1], last_hidden_layer_info.neurons_count)
         )
+        last_hidden_layer_biases = np.random.rand(self.output_neurons_count)
         hidden_layers.append(
             NeuralNetworkHiddenLayer(
-                last_hidden_layer_info, last_hidden_layer_info_weights
+                last_hidden_layer_info, last_hidden_layer_info_weights, last_hidden_layer_biases
             )
         )
         return hidden_layers
